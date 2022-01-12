@@ -1,0 +1,58 @@
+import datetime
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, __version__,BlobBlock
+import requests
+from requests.structures import CaseInsensitiveDict
+from requests.auth import HTTPBasicAuth
+import json
+from datetime import date, timedelta
+
+##Add API URL,Container name,Azure target folder path,API Username and Password
+API_URL = " "
+container_name=""
+azure_target_folder_path=""
+API_PASSWORD=""
+API_USER_NAME=""
+
+##Start date and end date parameter passing
+start_date = date(2021, 11, 1)   # start date
+end_date = date(2021, 11, 2)   # end date
+
+delta = end_date - start_date       # as timedelta
+
+headers={
+    'Content-type':'application/json', 
+    'Accept':'application/json'
+}
+
+class DateTimeEncoder(json.JSONEncoder):
+        def default(self, z):
+            if isinstance(z, date):
+                 return (str(z))
+            else:
+                return super().default(z)  
+
+for i in range(delta.days + 1):
+    dt = start_date + timedelta(days=i)
+    data = {
+    <Data in json format>
+        }
+    resp = requests.post(API_URL,headers=headers, data=json.dumps(data,cls=DateTimeEncoder), stream=True,auth=HTTPBasicAuth(API_USER_NAME, API_PASSWORD))
+    print(resp.status_code)
+    blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=<account_name>;AccountKey=<account_key>;EndpointSuffix=core.windows.net")
+    filename = datetime.date.strftime(dt,'%Y-%m-%d.json')
+    blob_client = blob_service_client.get_blob_client(container=container_name +azure_target_folder_path, blob=filename)
+    blob_client.upload_blob(resp.iter_content(chunk_size=128),overwrite=True)
+    print("File uploaded successfully "+ filename)
+
+print("All Data successfully loaded")
+
+
+
+
+
+
+
+
+
+
+
